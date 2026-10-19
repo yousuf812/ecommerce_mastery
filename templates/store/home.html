@@ -1,0 +1,218 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="flex flex-col lg:flex-row gap-8 items-start">
+
+    <!-- ================= বামের সাইডবার (Desktop & Mobile Drawer) ================= -->
+    
+    <!-- মোবাইল ড্রয়ার ব্যাকড্রপ -->
+    <div x-show="mobileSidebar" 
+         x-transition:enter="transition-opacity ease-linear duration-300"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition-opacity ease-linear duration-300"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         class="fixed inset-0 bg-slate-900/50 z-50 lg:hidden" 
+         @click="mobileSidebar = false"></div>
+
+    <!-- সাইডবার প্যানেল -->
+    <aside :class="mobileSidebar ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'"
+           class="fixed inset-y-0 left-0 z-50 w-72 bg-white p-6 shadow-xl transition-transform duration-300 ease-in-out lg:static lg:w-64 lg:p-0 lg:shadow-none lg:bg-transparent lg:block shrink-0">
+        
+        <div class="flex items-center justify-between pb-4 border-b border-slate-200 lg:hidden mb-4">
+            <h3 class="font-bold text-lg text-slate-800">ফিল্টার ও ক্যাটাগরি</h3>
+            <button @click="mobileSidebar = false" class="text-slate-400 hover:text-slate-700">
+                <i class="fa-solid fa-xmark text-xl"></i>
+            </button>
+        </div>
+
+        <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-6">
+            
+            <!-- ক্যাটাগরি তালিকা -->
+            <div>
+                <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">ক্যাটাগরি সমূহ</h4>
+                <ul class="space-y-1.5">
+                    <li>
+                        <a href="{% url 'home' %}" 
+                           class="flex items-center justify-between px-3 py-2 rounded-xl text-sm font-medium transition {% if not selected_category %}bg-indigo-50 text-indigo-600 font-bold{% else %}text-slate-600 hover:bg-slate-100{% endif %}">
+                            <span><i class="fa-solid fa-border-all mr-2"></i> সব প্রোডাক্ট</span>
+                        </a>
+                    </li>
+                    {% for cat in all_categories %}
+                    <li>
+                        <a href="?category={{ cat.slug }}{% if search_query %}&q={{ search_query }}{% endif %}" 
+                           class="flex items-center justify-between px-3 py-2 rounded-xl text-sm font-medium transition {% if selected_category.slug == cat.slug %}bg-indigo-50 text-indigo-600 font-bold{% else %}text-slate-600 hover:bg-slate-100{% endif %}">
+                            <span><i class="fa-solid fa-tag mr-2 text-slate-400"></i> {{ cat.name }}</span>
+                            <span class="text-xs text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">{{ cat.products.count }}</span>
+                        </a>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <hr class="border-slate-100">
+
+            <!-- সর্টিং ফিল্টার -->
+            <div>
+                <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">মূল্য অনুযায়ী সাজান</h4>
+                <div class="flex flex-col gap-2 text-sm text-slate-600">
+                    <a href="?{% if selected_category %}category={{ selected_category.slug }}&{% endif %}sort=price_low" 
+                       class="hover:text-indigo-600 transition flex items-center gap-2">
+                        <i class="fa-solid fa-arrow-down-short-wide text-xs"></i> কম থেকে বেশি
+                    </a>
+                    <a href="?{% if selected_category %}category={{ selected_category.slug }}&{% endif %}sort=price_high" 
+                       class="hover:text-indigo-600 transition flex items-center gap-2">
+                        <i class="fa-solid fa-arrow-up-wide-short text-xs"></i> বেশি থেকে কম
+                    </a>
+                </div>
+            </div>
+
+            {% if selected_category or search_query %}
+            <div class="pt-2">
+                <a href="{% url 'home' %}" class="block text-center text-xs text-rose-500 font-bold hover:underline">
+                    ফিল্টার ক্লিয়ার করুন
+                </a>
+            </div>
+            {% endif %}
+
+        </div>
+    </aside>
+
+    <!-- ================= ডানের মূল কনটেন্ট এরিয়া ================= -->
+    <div class="flex-1 w-full min-w-0 space-y-8">
+
+        <!-- ১. হিরো সেকশন ক্যারোসেল (Swiper JS) -->
+        {% if banners %}
+        <div class="relative rounded-3xl overflow-hidden shadow-sm border border-slate-200">
+            <div class="swiper myHeroSwiper h-48 sm:h-72 md:h-96 w-full">
+                <div class="swiper-wrapper">
+                    {% for banner in banners %}
+                    <div class="swiper-slide relative bg-slate-900">
+                        <img src="{{ banner.image.url }}" alt="{{ banner.title }}" class="w-full h-full object-cover opacity-80">
+                        <div class="absolute inset-0 bg-gradient-to-r from-slate-950/80 via-slate-950/40 to-transparent flex items-center">
+                            <div class="px-8 sm:px-12 max-w-xl text-white space-y-3">
+                                <span class="bg-indigo-600/90 text-white text-xs px-3 py-1 rounded-full uppercase tracking-wider font-bold">স্পেশাল অফার</span>
+                                <h2 class="text-2xl sm:text-4xl font-extrabold tracking-tight leading-tight">{{ banner.title }}</h2>
+                                <p class="text-xs sm:text-sm text-slate-200 line-clamp-2">{{ banner.subtitle }}</p>
+                                <div class="pt-2">
+                                    <a href="{{ banner.link_url }}" class="inline-flex items-center gap-2 bg-white text-slate-900 font-bold px-5 py-2.5 rounded-full hover:bg-slate-100 transition shadow-lg text-sm">
+                                        এখনই কিনুন <i class="fa-solid fa-arrow-right text-xs"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <!-- নেভিগেশন ও প্যাজিনেশন -->
+                <div class="swiper-pagination"></div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- ২. প্রোডাক্ট হেডার -->
+        <div class="flex items-center justify-between pb-2">
+            <div>
+                <h3 class="text-xl font-bold text-slate-900">
+                    {% if selected_category %}{{ selected_category.name }}{% else %}জনপ্রিয় প্রোডাক্টসমূহ{% endif %}
+                </h3>
+                <p class="text-xs text-slate-500 mt-0.5">মোট {{ total_count }} টি প্রোডাক্ট পাওয়া গেছে</p>
+            </div>
+        </div>
+
+        <!-- ৩. রেসপনসিভ প্রোডাক্ট গ্রিড -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-3 gap-6">
+            {% for product in products %}
+            <div class="group bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition duration-300 flex flex-col">
+                <!-- ইমেজ -->
+                <div class="relative bg-slate-100 h-56 overflow-hidden flex items-center justify-center">
+                    <a href="{% url 'product_detail' product.slug %}" class="block h-full w-full">
+                    {% if product.image %}
+                        <img src="{{ product.image.url }}" alt="{{ product.name }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                    {% else %}
+                        <i class="fa-solid fa-image text-slate-300 text-5xl"></i>
+                    {% endif %}
+                </a>
+
+                    {% if product.discount_price %}
+                        <span class="absolute top-3 left-3 bg-rose-500 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow">
+                            অফার
+                        </span>
+                    {% endif %}
+
+                    <!-- উইশলিস্ট হার্ট বাটন -->
+                        <a href="{% url 'toggle_wishlist' product.id %}" 
+                        class="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/90 backdrop-blur shadow flex items-center justify-center transition hover:scale-110"
+                        title="প্রিয় তালিকায় যোগ করুন">
+                            {% if product.id in wishlist_product_ids %}
+                                <i class="fa-solid fa-heart text-rose-500 text-sm"></i>
+                            {% else %}
+                                <i class="fa-regular fa-heart text-slate-500 hover:text-rose-500 text-sm"></i>
+                            {% endif %}
+                        </a>
+                </div>
+
+                <!-- বডি -->
+                <div class="p-5 flex-1 flex flex-col justify-between">
+                    <div>
+                        <span class="text-xs font-semibold text-indigo-600 uppercase tracking-wider">{{ product.category.name }}</span>
+                       <a href="{% url 'product_detail' product.slug %}">
+                            <h4 class="font-bold text-slate-800 mt-1 line-clamp-1 group-hover:text-indigo-600 transition">{{ product.name }}</h4>
+                        </a>
+                        <p class="text-xs text-slate-500 mt-1 line-clamp-2">{{ product.description }}</p>
+                    </div>
+
+                    <div class="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between">
+                        <div>
+                            {% if product.discount_price %}
+                                <div class="flex items-baseline gap-1.5">
+                                    <span class="text-lg font-black text-slate-900">৳{{ product.discount_price }}</span>
+                                    <span class="text-xs text-slate-400 line-through">৳{{ product.price }}</span>
+                                </div>
+                            {% else %}
+                                <span class="text-lg font-black text-slate-900">৳{{ product.price }}</span>
+                            {% endif %}
+                        </div>
+
+                        <!-- কার্ট বাটন ফর্ম -->
+                    <form action="{% url 'cart_add' product.id %}" method="POST">
+                        {% csrf_token %}
+                        <input type="hidden" name="quantity" value="1">
+                        <button type="submit" title="কার্টে যোগ করুন" class="bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white p-2.5 rounded-xl transition shadow-sm">
+                            <i class="fa-solid fa-cart-plus"></i>
+                        </button>
+                    </form>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-span-full py-16 text-center bg-white rounded-3xl border border-dashed border-slate-300">
+                <i class="fa-solid fa-box-open text-slate-300 text-5xl mb-3"></i>
+                <h4 class="text-lg font-bold text-slate-700">কোনো প্রোডাক্ট পাওয়া যায়নি!</h4>
+                <p class="text-sm text-slate-500 mt-1">ভিন্ন কোনো কি-ওয়ার্ড দিয়ে সার্চ করুন অথবা ফিল্টার পরিবর্তন করুন।</p>
+            </div>
+            {% endfor %}
+        </div>
+
+    </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Swiper Carousel Initialization
+    const swiper = new Swiper('.myHeroSwiper', {
+        loop: true,
+        autoplay: {
+            delay: 4500,
+            disableOnInteraction: false,
+        },
+        pagination: {
+            el: '.swiper-pagination',
+            clickable: true,
+        },
+    });
+</script>
+{% endblock %}

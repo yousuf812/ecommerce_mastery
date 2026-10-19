@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <title>কম স্টক সতর্কতা</title>
+</head>
+<body style="font-family: Arial, sans-serif; background: #fff1f2; padding: 20px; color: #881337;">
+    <div style="max-width: 500px; margin: 0 auto; background: #ffffff; border: 1px solid #fecdd3; border-radius: 12px; padding: 25px;">
+        <h2 style="color: #e11d48; margin-top: 0;">⚠️ ইনভেন্টরি সতর্কতা: স্টক শেষ পর্যায়ে!</h2>
+        <p style="font-size: 14px; color: #4c0519;">স্টোর ম্যানেজমেন্টের অবগতির জন্য জানানো যাচ্ছে যে, নিচের পণ্যটির স্টক নির্ধারিত সীমার ({{ threshold }} টি) নিচে নেমে এসেছে:</p>
+        
+        <div style="background: #fff1f2; padding: 15px; border-radius: 8px; margin: 15px 0;">
+            <p style="margin: 4px 0;"><strong>পণ্যের নাম:</strong> {{ product.name }}</p>
+            <p style="margin: 4px 0;"><strong>ক্যাটাগরি:</strong> {{ product.category.name }}</p>
+            <p style="margin: 4px 0;"><strong>বর্তমান স্টক:</strong> <span style="font-size: 16px; font-weight: bold; color: #e11d48;">{{ product.stock }} টি অবশিষ্ট</span></p>
+        </div>
+
+        <p style="font-size: 12px; color: #9f1239;">দ্রুত সাপ্লায়ারের সাথে যোগাযোগ করে ইনভেন্টরি রি-স্টক করার অনুরোধ করা হচ্ছে।</p>
+    </div>
+</body>
+</html>

@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}NovaMart - আধুনিক অনলাইন শপ{% endblock %}</title>
+    <!-- Tailwind CSS (CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Swiper CSS (Hero Carousel-এর জন্য) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"/>
+    <!-- Alpine.js (মোবাইল ড্রয়ার ও ইন্টারঅ্যাকশনের জন্য) -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <!-- FontAwesome আইকন -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+</head>
+<body class="bg-slate-50 font-sans text-slate-800 antialiased" x-data="{ mobileSidebar: false }">
+
+    <!-- গ্লোবাল নেভিগেশন বার -->
+    <nav class="sticky top-0 z-40 bg-white/95 backdrop-blur border-b border-slate-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16 gap-4">
+                
+                <!-- লোগো এবং মোবাইল টগল -->
+                <div class="flex items-center gap-3">
+                    <button @click="mobileSidebar = true" class="lg:hidden text-slate-600 hover:text-indigo-600 p-2">
+                        <i class="fa-solid fa-bars text-xl"></i>
+                    </button>
+                    <a href="{% url 'home' %}" class="flex items-center gap-2 text-2xl font-black tracking-tight text-indigo-600">
+                        <i class="fa-solid fa-bag-shopping"></i> NovaMart
+                    </a>
+                </div>
+
+                <!-- সেন্ট্রাল সার্চ বার -->
+                <div class="flex-1 max-w-2xl hidden md:block">
+                    <form action="{% url 'home' %}" method="GET" class="relative">
+                        <input type="text" name="q" value="{{ search_query }}" 
+                               placeholder="কাঙ্ক্ষিত প্রোডাক্ট বা ব্র্যান্ড খুঁজুন..." 
+                               class="w-full pl-11 pr-4 py-2.5 bg-slate-100 border border-transparent rounded-full text-sm focus:bg-white focus:border-indigo-500 focus:outline-none transition shadow-sm">
+                        <i class="fa-solid fa-magnifying-glass absolute left-4 top-3.5 text-slate-400"></i>
+                    </form>
+                </div>
+
+               <!-- ইউজার এবং কার্ট অংশ -->
+<div class="flex items-center gap-3 sm:gap-4">
+    <a href="{% url 'wishlist' %}" class="relative p-2 text-slate-600 hover:text-rose-500 transition" title="প্রিয় তালিকা">
+        <i class="fa-regular fa-heart text-xl"></i>
+        {% if wishlist_count > 0 %}
+        <span class="absolute top-1 right-1 bg-rose-500 text-white text-xs font-bold rounded-full h-5 min-w-[20px] px-1 flex items-center justify-center">
+            {{ wishlist_count }}
+        </span>
+        {% endif %}
+    </a>
+    <!-- কার্ট আইকন -->
+    <a href="{% url 'cart_detail' %}" class="relative p-2 text-slate-600 hover:text-indigo-600 transition">
+        <i class="fa-solid fa-cart-shopping text-xl"></i>
+        <span class="absolute top-1 right-1 bg-rose-500 text-white text-xs font-bold rounded-full h-5 min-w-[20px] px-1 flex items-center justify-center">
+            {{ cart|length }}
+        </span>
+    </a>
+
+    <!-- ইউজার ড্রপডাউন (Alpine.js দ্বারা নিয়ন্ত্রিত) -->
+    {% if user.is_authenticated %}
+    <div class="relative" x-data="{ open: false }">
+        <button @click="open = !open" @click.outside="open = false" 
+                class="flex items-center gap-2 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-full text-sm font-semibold transition">
+            <div class="w-7 h-7 bg-indigo-600 text-white rounded-full flex items-center justify-center text-xs uppercase font-bold">
+                {{ user.username|slice:":1" }}
+            </div>
+            <span class="hidden md:inline">{{ user.username }}</span>
+            <i class="fa-solid fa-chevron-down text-xs text-slate-400"></i>
+        </button>
+
+        <!-- ড্রপডাউন মেনু -->
+        <div x-show="open" 
+             x-transition 
+             class="absolute right-0 mt-2 w-48 bg-white border border-slate-200 rounded-2xl shadow-xl py-2 z-50">
+
+             {% if user.is_staff %}
+            <a href="{% url 'admin_analytics_dashboard' %}" class="flex items-center gap-2 px-4 py-2 text-sm text-indigo-600 bg-indigo-50/50 hover:bg-indigo-100 font-bold">
+                <i class="fa-solid fa-chart-pie text-xs w-4"></i> অ্যানালিটিক্স ড্যাশবোর্ড
+            </a>
+            <hr class="my-1 border-slate-100">
+            {% endif %}
+            <a href="{% url 'customer_dashboard' %}" class="flex items-center gap-2 px-4 py-2 text-sm text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 font-medium">
+                <i class="fa-solid fa-gauge-high text-xs w-4"></i> ড্যাশবোর্ড
+            </a>
+            <hr class="my-1 border-slate-100">
+            <a href="{% url 'customer_logout' %}" class="flex items-center gap-2 px-4 py-2 text-sm text-rose-600 hover:bg-rose-50 font-medium">
+                <i class="fa-solid fa-arrow-right-from-bracket text-xs w-4"></i> লগআউট
+            </a>
+        </div>
+    </div>
+    {% else %}
+    <a href="{% url 'customer_login' %}" class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-full transition shadow-sm">
+        <i class="fa-regular fa-user"></i> লগইন
+    </a>
+    {% endif %}
+</div>
+
+            <!-- মোবাইলের জন্য সার্চ বার -->
+            <div class="pb-3 md:hidden">
+                <form action="{% url 'home' %}" method="GET">
+                    <input type="text" name="q" value="{{ search_query }}" placeholder="প্রোডাক্ট খুঁজুন..." 
+                           class="w-full px-4 py-2 bg-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                </form>
+            </div>
+        </div>
+    </nav>
+
+    <!-- মূল কনটেন্ট -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <!-- জ্যাঙ্গো সেশন মেসেজ বা অ্যালার্ট -->
+{% if messages %}
+<div class="mb-6 space-y-2">
+    {% for message in messages %}
+    <div class="p-4 rounded-2xl text-sm font-semibold flex items-center justify-between shadow-sm 
+        {% if message.tags == 'success' %}bg-emerald-50 text-emerald-800 border border-emerald-200
+        {% elif message.tags == 'error' %}bg-rose-50 text-rose-800 border border-rose-200
+        {% else %}bg-indigo-50 text-indigo-800 border border-indigo-200{% endif %}">
+        <span>{{ message }}</span>
+        <button type="button" onclick="this.parentElement.remove()" class="text-slate-400 hover:text-slate-700">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- ফুটার -->
+    <footer class="bg-white border-t border-slate-200 mt-16 py-8">
+        <div class="max-w-7xl mx-auto px-4 text-center text-sm text-slate-500">
+            <p>&copy; ২০২৬ NovaMart e-Commerce. সর্বস্বত্ব সংরক্ষিত।</p>
+        </div>
+    </footer>
+
+    <!-- Swiper JS Script -->
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block title %}অর্ডার সফল হয়েছে! - NovaMart{% endblock %}
+
+{% block content %}
+<div class="py-12 max-w-2xl mx-auto">
+    <div class="bg-white border border-slate-200 rounded-3xl p-8 sm:p-12 shadow-sm text-center">
+        
+        <!-- সাকসেস আইকন -->
+        <div class="w-20 h-20 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-6 text-4xl shadow-inner">
+            <i class="fa-solid fa-circle-check"></i>
+        </div>
+
+        <span class="inline-block px-3 py-1 bg-emerald-100 text-emerald-800 text-xs font-bold rounded-full uppercase tracking-wider mb-2">
+            অর্ডার সফল হয়েছে
+        </span>
+        <h1 class="text-2xl sm:text-3xl font-black text-slate-900">ধন্যবাদ, আপনার অর্ডারটি গ্রহণ করা হয়েছে!</h1>
+        <p class="text-slate-500 text-sm mt-2">
+            অর্ডার ট্র্যাকিং আইডি: <strong class="text-indigo-600">#{{ order.id }}</strong>। আমাদের টিম দ্রুত আপনার সাথে যোগাযোগ করবে।
+        </p>
+
+        <!-- অর্ডার রসিদ বক্স -->
+        <div class="bg-slate-50 border border-slate-200 rounded-2xl p-6 my-8 text-left space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-200 pb-3 text-sm">
+                <span class="text-slate-500">গ্রাহকের নাম:</span>
+                <span class="font-bold text-slate-800">{{ order.first_name }} {{ order.last_name }}</span>
+            </div>
+            <div class="flex justify-between items-center border-b border-slate-200 pb-3 text-sm">
+                <span class="text-slate-500">ডেলিভারি ঠিকানা:</span>
+                <span class="font-bold text-slate-800">{{ order.address }}, {{ order.city }}</span>
+            </div>
+            <div class="flex justify-between items-center border-b border-slate-200 pb-3 text-sm">
+                <span class="text-slate-500">পেমেন্ট মেথড:</span>
+                <span class="font-bold text-slate-800">{{ order.payment_method }}</span>
+            </div>
+            <div class="flex justify-between items-center text-sm">
+                <span class="text-slate-500">পরিশোধযোগ্য মূল্য:</span>
+                <span class="text-lg font-black text-indigo-600">৳{{ order.total_amount }}</span>
+            </div>
+        </div>
+
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+            <a href="{% url 'home' %}" class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-full transition shadow-md text-sm">
+                <i class="fa-solid fa-bag-shopping"></i> আরও কেনাকাটা করুন
+            </a>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

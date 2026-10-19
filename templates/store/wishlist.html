@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+
+{% block title %}আমার প্রিয় তালিকা (Wishlist) - NovaMart{% endblock %}
+
+{% block content %}
+<div class="py-6 space-y-6">
+
+    <!-- ব্রেডক্রাম্ব -->
+    <div class="flex items-center gap-2 text-sm text-slate-500">
+        <a href="{% url 'home' %}" class="hover:text-indigo-600">হোম</a>
+        <i class="fa-solid fa-chevron-right text-xs"></i>
+        <span class="text-slate-800 font-semibold">প্রিয় তালিকা</span>
+    </div>
+
+    <!-- হেডার -->
+    <div class="flex items-center justify-between pb-4 border-b border-slate-200">
+        <div>
+            <h1 class="text-2xl sm:text-3xl font-black text-slate-900 flex items-center gap-3">
+                <i class="fa-solid fa-heart text-rose-500"></i> প্রিয় তালিকা
+            </h1>
+            <p class="text-xs text-slate-500 mt-1">মোট {{ wishlist_items.count }} টি পণ্য সংরক্ষিত আছে</p>
+        </div>
+    </div>
+
+    {% if wishlist_items %}
+    <!-- উইশলিস্ট গ্রিড -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
+        {% for item in wishlist_items %}
+        {% with product=item.product %}
+        <div class="group bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition duration-300 flex flex-col justify-between">
+            
+            <!-- ছবি ও রিমুভ অপশন -->
+            <div class="relative bg-slate-100 h-52 overflow-hidden flex items-center justify-center">
+                <a href="{% url 'product_detail' product.slug %}" class="block h-full w-full">
+                    {% if product.image %}
+                        <img src="{{ product.image.url }}" alt="{{ product.name }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                    {% else %}
+                        <i class="fa-solid fa-image text-slate-300 text-4xl"></i>
+                    {% endif %}
+                </a>
+
+                <!-- তালিকা থেকে বাদ দেওয়ার বাটন -->
+                <a href="{% url 'toggle_wishlist' product.id %}" 
+                   class="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/90 text-slate-400 hover:text-rose-500 shadow flex items-center justify-center transition"
+                   title="তালিকা থেকে বাদ দিন">
+                    <i class="fa-solid fa-xmark text-sm"></i>
+                </a>
+            </div>
+
+            <!-- বডি -->
+            <div class="p-5 flex-1 flex flex-col justify-between space-y-4">
+                <div>
+                    <span class="text-xs font-semibold text-indigo-600 uppercase">{{ product.category.name }}</span>
+                    <a href="{% url 'product_detail' product.slug %}">
+                        <h3 class="font-bold text-slate-800 text-sm mt-1 line-clamp-1 group-hover:text-indigo-600 transition">{{ product.name }}</h3>
+                    </a>
+                    
+                    <div class="mt-2 flex items-baseline gap-2">
+                        {% if product.discount_price %}
+                            <span class="text-base font-black text-slate-900">৳{{ product.discount_price }}</span>
+                            <span class="text-xs text-slate-400 line-through">৳{{ product.price }}</span>
+                        {% else %}
+                            <span class="text-base font-black text-slate-900">৳{{ product.price }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- কার্ট অ্যাকশন বাটন -->
+                <div class="pt-2 border-t border-slate-100">
+                    {% if product.stock > 0 %}
+                    <a href="{% url 'wishlist_move_to_cart' product.id %}" 
+                       class="w-full py-2.5 px-4 bg-indigo-50 hover:bg-indigo-600 text-indigo-600 hover:text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-cart-plus"></i> ব্যাগে স্থানান্তর করুন
+                    </a>
+                    {% else %}
+                    <button disabled class="w-full py-2.5 px-4 bg-slate-100 text-slate-400 rounded-xl text-xs font-bold cursor-not-allowed">
+                        স্টক নেই
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+
+        </div>
+        {% endwith %}
+        {% endfor %}
+    </div>
+
+    {% else %}
+    <!-- উইশলিস্ট খালি থাকলে -->
+    <div class="text-center py-20 bg-white border border-dashed border-slate-200 rounded-3xl max-w-xl mx-auto p-8">
+        <div class="w-20 h-20 bg-rose-50 text-rose-400 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">
+            <i class="fa-regular fa-heart"></i>
+        </div>
+        <h2 class="text-2xl font-bold text-slate-800">আপনার প্রিয় তালিকা বর্তমানে খালি!</h2>
+        <p class="text-slate-500 text-sm mt-1 max-w-sm mx-auto">পছন্দের যেকোনো পণ্যের ওপর হার্ট আইকনে ক্লিক করে তালিকায় সংরক্ষণ করুন।</p>
+        <div class="mt-6">
+            <a href="{% url 'home' %}" class="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-full transition shadow-md text-sm">
+                পণ্য দেখতে যান <i class="fa-solid fa-arrow-right text-xs"></i>
+            </a>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

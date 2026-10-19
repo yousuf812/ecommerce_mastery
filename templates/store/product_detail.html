@@ -1,0 +1,207 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ product.name }} - NovaMart{% endblock %}
+
+{% block content %}
+<div class="py-6 space-y-12">
+
+    <!-- ব্রেডক্রাম্ব -->
+    <div class="flex items-center gap-2 text-sm text-slate-500">
+        <a href="{% url 'home' %}" class="hover:text-indigo-600">হোম</a>
+        <i class="fa-solid fa-chevron-right text-xs"></i>
+        <a href="{% url 'home' %}?category={{ product.category.slug }}" class="hover:text-indigo-600">{{ product.category.name }}</a>
+        <i class="fa-solid fa-chevron-right text-xs"></i>
+        <span class="text-slate-800 font-semibold truncate">{{ product.name }}</span>
+    </div>
+
+    <!-- প্রোডাক্ট তথ্য গ্রিড -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
+        
+        <!-- বাঁয়ে প্রোডাক্ট ছবি (৫ কলাম) -->
+        <div class="lg:col-span-5 bg-white border border-slate-200 rounded-3xl p-6 shadow-sm overflow-hidden flex items-center justify-center">
+            <div class="w-full h-80 sm:h-96 bg-slate-100 rounded-2xl overflow-hidden flex items-center justify-center">
+                {% if product.image %}
+                    <img src="{{ product.image.url }}" alt="{{ product.name }}" class="w-full h-full object-cover">
+                {% else %}
+                    <i class="fa-solid fa-image text-slate-300 text-6xl"></i>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- ডানে পণ্যের বিবরণ ও কেনাকাটার অপশন (৭ কলাম) -->
+        <div class="lg:col-span-7 bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-sm space-y-6">
+            
+            <div>
+                <span class="text-xs font-bold text-indigo-600 uppercase tracking-wider">{{ product.category.name }}</span>
+                <h1 class="text-2xl sm:text-3xl font-black text-slate-900 mt-1">{{ product.name }}</h1>
+
+                <!-- রেটিং সামারি -->
+                <div class="flex items-center gap-3 mt-3">
+                    <div class="flex text-amber-400 text-sm">
+                        {% for i in "12345" %}
+                            {% if forloop.counter <= product.get_average_rating %}
+                                <i class="fa-solid fa-star"></i>
+                            {% else %}
+                                <i class="fa-regular fa-star text-slate-300"></i>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    <span class="text-sm font-black text-slate-800">{{ product.get_average_rating }}</span>
+                    <span class="text-slate-400 text-sm">•</span>
+                    <a href="#reviews" class="text-sm text-indigo-600 font-semibold hover:underline">{{ product.get_review_count }} টি রিভিউ</a>
+                </div>
+            </div>
+
+            <!-- মূল্য -->
+            <div class="flex items-baseline gap-3 pt-2">
+                {% if product.discount_price %}
+                    <span class="text-3xl font-black text-indigo-600">৳{{ product.discount_price }}</span>
+                    <span class="text-base text-slate-400 line-through">৳{{ product.price }}</span>
+                    <span class="text-xs bg-rose-50 text-rose-600 font-bold px-2.5 py-1 rounded-full border border-rose-200">অফার মূল্য</span>
+                {% else %}
+                    <span class="text-3xl font-black text-slate-900">৳{{ product.price }}</span>
+                {% endif %}
+            </div>
+
+            <!-- স্টক স্ট্যাটাস -->
+            <div>
+                {% if product.stock > 0 %}
+                    <span class="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> স্টকে আছে ({{ product.stock }} টি অবশিষ্ট)
+                    </span>
+                {% else %}
+                    <span class="inline-flex items-center gap-1.5 text-xs font-bold text-rose-700 bg-rose-50 px-3 py-1 rounded-full border border-rose-200">
+                        <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span> স্টক শেষ (Out of Stock)
+                    </span>
+                {% endif %}
+            </div>
+
+            <p class="text-sm text-slate-600 leading-relaxed pt-2 border-t border-slate-100">
+                {{ product.description|linebreaksbr }}
+            </p>
+
+            <!-- কার্টে যোগ করার ফর্ম -->
+            {% if product.stock > 0 %}
+            <form action="{% url 'cart_add' product.id %}" method="POST" class="flex flex-col sm:flex-row items-center gap-4 pt-4 border-t border-slate-100">
+                {% csrf_token %}
+                <div class="flex items-center border border-slate-200 rounded-xl overflow-hidden bg-slate-50">
+                    <span class="px-3 text-xs font-bold text-slate-400 uppercase">পরিমাণ:</span>
+                    <input type="number" name="quantity" value="1" min="1" max="{{ product.stock }}" 
+                           class="w-16 py-2.5 text-center text-sm font-bold bg-transparent focus:outline-none">
+                </div>
+                <button type="submit" class="w-full sm:w-auto flex-1 py-3 px-6 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg shadow-indigo-200 transition flex items-center justify-center gap-2 text-sm">
+                    <i class="fa-solid fa-cart-plus"></i> ব্যাগে যোগ করুন
+                </button>
+            </form>
+            {% endif %}
+
+        </div>
+
+    </div>
+
+    <!-- ================= রিভিউ ও রেটিং সেকশন ================= -->
+    <div id="reviews" class="bg-white border border-slate-200 rounded-3xl p-6 sm:p-10 shadow-sm space-y-8">
+        
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-100 pb-6">
+            <div>
+                <h2 class="text-xl font-bold text-slate-900">ক্রেতাদের পর্যালোচনা ও রেটিং</h2>
+                <p class="text-xs text-slate-500 mt-0.5">মোট {{ product.get_review_count }} জন ক্রেতার মতামত</p>
+            </div>
+            <div class="flex items-center gap-3 bg-amber-50 border border-amber-200 px-4 py-2 rounded-2xl">
+                <span class="text-3xl font-black text-amber-500">{{ product.get_average_rating }}</span>
+                <div>
+                    <div class="flex text-amber-400 text-xs">
+                        <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+                    </div>
+                    <span class="text-[11px] text-slate-600 font-semibold">৫.০ এর মধ্যে</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            
+            <!-- বাঁয়ে বিদ্যমান রিভিউ তালিকা (৭ কলাম) -->
+            <div class="lg:col-span-7 space-y-4">
+                {% for review in reviews %}
+                <div class="p-5 rounded-2xl border border-slate-100 bg-slate-50/50 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="w-9 h-9 rounded-full bg-indigo-100 text-indigo-700 font-bold flex items-center justify-center text-xs uppercase">
+                                {{ review.user.username|slice:":1" }}
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <h4 class="font-bold text-slate-800 text-sm">{{ review.user.username }}</h4>
+                                    <!-- যদি ব্যবহারকারী পণ্যটি পূর্বে ক্রয় করে থাকেন -->
+                                    <span class="inline-flex items-center gap-1 text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-bold">
+                                        <i class="fa-solid fa-circle-check text-[9px]"></i> ভেরিফাইড ক্রেতা
+                                    </span>
+                                </div>
+                                <span class="text-[11px] text-slate-400">{{ review.created_at|date:"d F, Y" }}</span>
+                            </div>
+                        </div>
+
+                        <!-- স্টার রেটিং -->
+                        <div class="flex text-amber-400 text-xs">
+                            {% for i in "12345" %}
+                                {% if forloop.counter <= review.rating %}
+                                    <i class="fa-solid fa-star"></i>
+                                {% else %}
+                                    <i class="fa-regular fa-star text-slate-300"></i>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                        {{ review.comment }}
+                    </p>
+                </div>
+                {% empty %}
+                <div class="py-10 text-center border border-dashed border-slate-200 rounded-2xl">
+                    <i class="fa-regular fa-comment-dots text-slate-300 text-3xl mb-2"></i>
+                    <p class="text-sm font-semibold text-slate-600">এই প্রোডাক্টের এখনো কোনো রিভিউ দেওয়া হয়নি।</p>
+                    <p class="text-xs text-slate-400 mt-0.5">প্রথম রিভিউদাতা হিসেবে আপনার মূল্যবান মতামত শেয়ার করুন!</p>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- ডানে রিভিউ প্রদান ফর্ম (৫ কলাম) -->
+            <div class="lg:col-span-5 bg-slate-50 border border-slate-200 rounded-2xl p-6 space-y-4">
+                <h3 class="font-bold text-slate-900 text-sm flex items-center gap-2">
+                    <i class="fa-regular fa-pen-to-square text-indigo-600"></i>
+                    {% if user_review %}আপনার রিভিউ পরিবর্তন করুন{% else %}আপনার মতামত দিন{% endif %}
+                </h3>
+
+                {% if user.is_authenticated %}
+                <form action="{% url 'submit_review' product.id %}" method="POST" class="space-y-4">
+                    {% csrf_token %}
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">রেটিং নির্বাচন করুন *</label>
+                        {{ review_form.rating }}
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">মতামত *</label>
+                        {{ review_form.comment }}
+                    </div>
+                    <button type="submit" class="w-full py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs transition shadow-md">
+                        {% if user_review %}রিভিউ আপডেট করুন{% else %}রিভিউ পোস্ট করুন{% endif %}
+                    </button>
+                </form>
+                {% else %}
+                <div class="text-center py-6">
+                    <p class="text-xs text-slate-500 mb-3">রিভিউ বা রেটিং প্রদান করতে অনুগ্রহ করে অ্যাকাউন্টে লগইন করুন।</p>
+                    <a href="{% url 'customer_login' %}?next={{ request.path }}" class="inline-flex px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl transition shadow">
+                        লগইন করতে ক্লিক করুন
+                    </a>
+                </div>
+                {% endif %}
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+{% endblock %}
