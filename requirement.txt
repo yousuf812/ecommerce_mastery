@@ -1,0 +1,8 @@
+Django>=5.0
+mysqlclient>=2.2.0
+pillow>=10.0.0
+sslcommerz-lib>=1.1.0
+xhtml2pdf>=0.2.15
+django-redis>=5.4.0
+redis>=5.0.0
+gunicorn>=21.2.0
