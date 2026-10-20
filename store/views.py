@@ -117,10 +117,16 @@ def checkout_view(request):
                 order = form.save(commit=False)
                 if request.user.is_authenticated:
                     order.user = request.user
-                    
+
                 order.total_amount = cart.get_total_price()
-                order.payment_method = 'Online Payment (SSLCommerz)' if payment_method == 'SSLCOMMERZ' else 'Cash on Delivery'
+                order.payment_method = (
+                    'Online Payment (SSLCommerz)'
+                    if payment_method == 'SSLCOMMERZ'
+                    else 'Cash on Delivery'
+                )
                 order.save()
+
+                low_stock_products = []
 
                 for item in cart:
                     product = item['product']
@@ -128,21 +134,28 @@ def checkout_view(request):
                         order=order,
                         product=product,
                         price=item['price'],
-                        quantity=item['quantity']
+                        quantity=item['quantity'],
                     )
                     product.stock -= item['quantity']
                     product.save()
 
+                    threshold = getattr(settings, 'LOW_STOCK_THRESHOLD', 5)
+                    if product.stock <= threshold:
+                        low_stock_products.append(product)
+
                 cart.clear()
 
-                # অনলাইন পেমেন্ট হলে সরাসরি গেটওয়েতে যাবে
-                if payment_method == 'SSLCOMMERZ':
-                    return redirect('initiate_sslcommerz_payment', order_id=order.id)
-                
-                return redirect('order_success', order_id=order.id)
+                send_order_confirmation_email(order)
+                for low_prod in low_stock_products:
+                    send_low_stock_alert_email(low_prod)
+
+            # redirects placed OUTSIDE the atomic block, after clean commit
+            if payment_method == 'SSLCOMMERZ':
+                return redirect('initiate_sslcommerz_payment', order_id=order.id)
+            return redirect('order_success', order_id=order.id)
+
+        # invalid form → fall through to the render at the bottom
     else:
-        # ... বাকি ফর্ম ইনিশিয়ালাইজেশন পূর্বের মতোই থাকবে ...
-        # ইউজার লগইন থাকলে নাম ও ইমেইল আগে থেকেই ফর্মে বসিয়ে দেওয়া
         initial_data = {}
         if request.user.is_authenticated:
             initial_data = {
@@ -153,7 +166,6 @@ def checkout_view(request):
         form = OrderCreateForm(initial=initial_data)
 
     return render(request, 'store/checkout.html', {'cart': cart, 'form': form})
-
 
 def order_success_view(request, order_id):
     order = get_object_or_404(Order, id=order_id)
@@ -507,63 +519,63 @@ def download_invoice_pdf(request, order_id):
 
 
 
-def checkout_view(request):
-    cart = Cart(request)
-    if len(cart) == 0:
-        return redirect('home')
+# def checkout_view(request):
+#     cart = Cart(request)
+#     if len(cart) == 0:
+#         return redirect('home')
 
-    if request.method == 'POST':
-        form = OrderCreateForm(request.POST)
-        payment_method = request.POST.get('payment_method', 'COD')
+#     if request.method == 'POST':
+#         form = OrderCreateForm(request.POST)
+#         payment_method = request.POST.get('payment_method', 'COD')
 
-        if form.is_valid():
-            with transaction.atomic():
-                order = form.save(commit=False)
-                if request.user.is_authenticated:
-                    order.user = request.user
+#         if form.is_valid():
+#             with transaction.atomic():
+#                 order = form.save(commit=False)
+#                 if request.user.is_authenticated:
+#                     order.user = request.user
                     
-                order.total_amount = cart.get_total_price()
-                order.payment_method = 'Online Payment (SSLCommerz)' if payment_method == 'SSLCOMMERZ' else 'Cash on Delivery'
-                order.save()
+#                 order.total_amount = cart.get_total_price()
+#                 order.payment_method = 'Online Payment (SSLCommerz)' if payment_method == 'SSLCOMMERZ' else 'Cash on Delivery'
+#                 order.save()
 
-                low_stock_products = []
+#                 low_stock_products = []
 
-                # আইটেম তৈরি এবং স্টক নিরীক্ষণ
-                for item in cart:
-                    product = item['product']
-                    OrderItem.objects.create(
-                        order=order,
-                        product=product,
-                        price=item['price'],
-                        quantity=item['quantity']
-                    )
+#                 # আইটেম তৈরি এবং স্টক নিরীক্ষণ
+#                 for item in cart:
+#                     product = item['product']
+#                     OrderItem.objects.create(
+#                         order=order,
+#                         product=product,
+#                         price=item['price'],
+#                         quantity=item['quantity']
+#                     )
                     
-                    # স্টক কমানো
-                    product.stock -= item['quantity']
-                    product.save()
+#                     # স্টক কমানো
+#                     product.stock -= item['quantity']
+#                     product.save()
 
-                    # কম স্টক নিরীক্ষণ (Threshold Check)
-                    threshold = getattr(settings, 'LOW_STOCK_THRESHOLD', 5)
-                    if product.stock <= threshold:
-                        low_stock_products.append(product)
+#                     # কম স্টক নিরীক্ষণ (Threshold Check)
+#                     threshold = getattr(settings, 'LOW_STOCK_THRESHOLD', 5)
+#                     if product.stock <= threshold:
+#                         low_stock_products.append(product)
 
-                cart.clear()
+#                 cart.clear()
 
-                # ১. গ্রাহককে কনফার্মেশন ইমেইল পাঠানো
-                send_order_confirmation_email(order)
+#                 # ১. গ্রাহককে কনফার্মেশন ইমেইল পাঠানো
+#                 send_order_confirmation_email(order)
 
-                # ২. কম স্টক থাকা পণ্যগুলোর জন্য অ্যাডমিনকে সতর্কতা ইমেইল পাঠানো
-                for low_prod in low_stock_products:
-                    send_low_stock_alert_email(low_prod)
+#                 # ২. কম স্টক থাকা পণ্যগুলোর জন্য অ্যাডমিনকে সতর্কতা ইমেইল পাঠানো
+#                 for low_prod in low_stock_products:
+#                     send_low_stock_alert_email(low_prod)
 
-                # পেমেন্ট মেথড অনুযায়ী রিডাইরেক্ট
-                if payment_method == 'SSLCOMMERZ':
-                    return redirect('initiate_sslcommerz_payment', order_id=order.id)
+#                 # পেমেন্ট মেথড অনুযায়ী রিডাইরেক্ট
+#                 if payment_method == 'SSLCOMMERZ':
+#                     return redirect('initiate_sslcommerz_payment', order_id=order.id)
                 
-                return redirect('order_success', order_id=order.id)
-    else:
-        # ... ফর্ম ইনিশিয়ালাইজেশন পূর্বের ন্যায় ...
-        pass
+#                 return redirect('order_success', order_id=order.id)
+#     else:
+#         # ... ফর্ম ইনিশিয়ালাইজেশন পূর্বের ন্যায় ...
+#         pass
 
 
 

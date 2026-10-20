@@ -142,7 +142,7 @@ SSLCOMMERZ_SETTINGS = {
 # --- Email Configuration ---
 
 # লোকাল ডেভেলপমেন্টের জন্য কনসোল ব্যাকএন্ড (টার্মিনালে ইমেইল প্রিন্ট হবে)
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 # প্রোডাকশনে জিমেইল/এসএমটিপি চালু করতে চাইলে নিচের কনফিগ আনকমেন্ট করুন:
 # EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
@@ -152,8 +152,8 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 # EMAIL_HOST_USER = 'yosuf.me.bd@gmail.com'
 # EMAIL_HOST_PASSWORD = 'your-app-password'  # 16-digit Google App Password
 
-DEFAULT_FROM_EMAIL = 'NovaMart <no-reply@novamart.com>'
-ADMIN_ALERT_EMAIL = 'admin@novamart.com'  # স্টক শেষ হলে যে ইমেইলে অ্যালার্ট যাবে
+# DEFAULT_FROM_EMAIL = 'NovaMart <no-reply@novamart.com>'
+# ADMIN_ALERT_EMAIL = 'admin@novamart.com'  # স্টক শেষ হলে যে ইমেইলে অ্যালার্ট যাবে
 
 # স্টক অ্যালার্টের ন্যূনতম সীমা
-LOW_STOCK_THRESHOLD = 5
+# LOW_STOCK_THRESHOLD = 5

@@ -29,13 +29,13 @@ class OrderItemInline(admin.TabularInline):
     raw_id_fields = ['product']
     extra = 0
 
-@admin.register(Order)
-class OrderAdmin(admin.ModelAdmin):
-    list_display = ['id', 'first_name', 'last_name', 'phone', 'total_amount', 'status', 'created_at']
-    list_filter = ['status', 'created_at']
-    search_fields = ['first_name', 'last_name', 'phone', 'address']
-    list_editable = ['status']  # অ্যাডমিন টেবিল থেকেই সরাসরি স্ট্যাটাস পরিবর্তন করা যাবে
-    inlines = [OrderItemInline]
+# @admin.register(Order)
+# class OrderAdmin(admin.ModelAdmin):
+#     list_display = ['id', 'first_name', 'last_name', 'phone', 'total_amount', 'status', 'created_at']
+#     list_filter = ['status', 'created_at']
+#     search_fields = ['first_name', 'last_name', 'phone', 'address']
+#     list_editable = ['status']  # অ্যাডমিন টেবিল থেকেই সরাসরি স্ট্যাটাস পরিবর্তন করা যাবে
+#     inlines = [OrderItemInline]
 
 
 
